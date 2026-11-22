@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>فحص PWA</title>
+<style>body{font:16px system-ui,Tahoma,sans-serif;background:#111;color:#eee;margin:0;padding:16px}h1{font-size:1.2rem}div{padding:10px 12px;margin:6px 0;border-radius:10px;background:#1c1c1e}.ok{border-right:5px solid #30d158}.no{border-right:5px solid #ff453a}small{color:#999}</style></head><body>
+<h1>فحص PWA</h1><div id="o"></div><script>
+var o=document.getElementById('o');
+function row(ok,t,d){var e=document.createElement('div');e.className=ok?'ok':'no';e.textContent=(ok?'✅ ':'❌ ')+t;if(d){var s=document.createElement('small');s.textContent=' — '+d;e.appendChild(s)}o.appendChild(e)}
+var F=['index.html','manifest.webmanifest','sw.js','storage.js','icon-192.png','icon-512.png','maskable-192.png','maskable-512.png','apple-touch-icon.png','favicon-32.png'];
+(async function(){
+ for(var f of F){try{var r=await fetch(f,{cache:'no-store'});row(r.ok,f,r.ok?'':'HTTP '+r.status)}catch(e){row(false,f,'تعذر التحميل')}}
+ try{var m=await (await fetch('manifest.webmanifest',{cache:'no-store'})).json();
+  var miss=['name','short_name','start_url','scope','display','icons'].filter(function(k){return !m[k]});
+  var i=m.icons||[],has=function(s,p){return i.some(function(x){return x.sizes==s&&x.purpose==p})};
+  row(!miss.length&&m.display==='standalone'&&has('192x192','any')&&has('512x512','any')&&has('192x192','maskable')&&has('512x512','maskable'),'manifest صالح',miss.length?'ناقص: '+miss.join(','):'')}
+ catch(e){row(false,'manifest صالح','تعذرت القراءة')}
+ if(!('serviceWorker'in navigator)){row(false,'Service Worker','غير مدعوم (يلزم HTTPS)')}
+ else{try{var g=await navigator.serviceWorker.getRegistration('./');row(!!g,'تسجيل Service Worker',g?(g.active?'نشط':'قيد التفعيل'):'افتح index.html مرة أولى');
+  var ks=await caches.keys();row(ks.length>0,'التخزين المؤقت',ks.join(', '))}catch(e){row(false,'Service Worker',String(e))}}
+ row(!!(navigator.storage&&navigator.storage.persist),'واجهة التخزين الدائم');
+ row(isSecureContext,'سياق آمن (HTTPS)');
+})();
+</script></body></html>
